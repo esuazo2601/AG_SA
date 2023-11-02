@@ -31,6 +31,11 @@ int hamming_cuadrado_a(string sol_in, vector<string>entrada){
     return costo_total;
 }
 
+char pick_random_letter(){
+    string DNA = "ATCG";
+    return DNA [rand()%DNA.size()];
+}
+
 vector<string> lee_instancia(string nombre){
     ifstream archivo_txt(nombre);
     vector<string> mat;
@@ -50,76 +55,62 @@ int generate_even_number(){
     return generated;
 }
 
-map<float, string, greater<float>> costToFitness(vector<pair<string, int>> pob) {
-    map<float, string, greater<float>> sorted_map;
-    int size = pob.size();
-    for (int i = 0; i < size; i++) {
-        float fit = 1.0 / pob[i].second; // Cambiado a float
-        sorted_map.insert(make_pair(fit, pob[i].first));
+bool sortbysec(const pair<string,int> &a, const pair<string,int> &b){
+    return (a.second < b.second);
+}
+
+pair<string,string> tournament (int k, vector<pair<string, int>>pob){
+    int pob_size = pob.size();
+    vector<pair<string, int>> bracket_fight_father;
+    vector<pair<string, int>> bracket_fight_mother;
+    
+    for (int i=0; i < k ;i++){
+        int random_index = rand()%pob_size;
+        bracket_fight_father.push_back(pob[random_index]);
     }
-    return sorted_map;
+    for (int i=0; i < k ;i++){
+        int random_index = rand()%pob_size;
+        bracket_fight_mother.push_back(pob[random_index]);
+    }
+    sort(bracket_fight_father.begin(),bracket_fight_father.end(), sortbysec);
+    sort(bracket_fight_mother.begin(),bracket_fight_mother.end(), sortbysec);
+    string father,mother;
+    father = bracket_fight_father.at(0).first;
+    mother = bracket_fight_mother.at(0).first;
+
+    if(father == mother) return tournament(k,pob);
+
+    return make_pair(father,mother);
 }
 
 
-map<float, string, greater<float>> cruzar(map<float, string, greater<float>>&mapa, vector<string>entrada){
-    map<float, string, greater<float>> gen_nueva = mapa;
-    int string_size = entrada.at(0).length();
-
-    auto it = mapa.begin();
-    while (it != mapa.end()) {
-        // Accede al primer elemento
-        float fitness1 = it->first;
-        string individuo1 = it->second;
-
-        // Avanza al siguiente elemento
-        ++it;
-
-        // Asegúrate de que todavía haya elementos en el mapa
-        if (it != mapa.end()) {
-            // Accede al segundo elemento
-            float fitness2 = it->first;
-            string individuo2 = it->second;
-
-            // Realiza la operación de cruce (por ejemplo, un cruce de un solo punto)
-            int punto_de_cruce = rand() % string_size;
-            string descendiente = individuo1.substr(0, punto_de_cruce) + individuo2.substr(punto_de_cruce);
-
-            // Agrega el descendiente al nuevo mapa
-            float fit_descendiente = 1.0 / hamming_cuadrado_a(descendiente,entrada);
-            gen_nueva.insert(make_pair(fit_descendiente,descendiente));
-            // Avanza al siguiente elemento
-            ++it;
-        }
+string cruzar(pair<string, string> parents){
+    int punto_de_cruce = rand()%parents.first.length();
+    string descendiente = parents.first.substr(0, punto_de_cruce) + parents.second.substr(punto_de_cruce);
+    int random_int = random()%100;
+    if (random_int < 5){
+        int random_index = random()%descendiente.size();
+        descendiente[random_index] = pick_random_letter();
     }
-
-    return gen_nueva;
+    return descendiente;
 }
 
 int main(int argc, char* argv[]) { 
     srand(time(nullptr));
-    if (argc != 9 || string(argv[1]) != "-i" || string(argv[3]) != "-t" || string(argv[5]) != "-d" || string(argv[7]) != "-p") {
-        std::cout << "Uso incorrecto. -i <instancia> -t <tiempo maximo> -d <determinismo> -p <población inicial>" << endl;
+    if (argc != 11 || string(argv[1]) != "-i" || string(argv[3]) != "-t" || string(argv[5]) != "-d" || string(argv[7]) != "-p" || string(argv[9]) != "-k" ) {
+        cout << "Uso incorrecto. -i <instancia> -t <tiempo maximo> -d <determinismo> -p <población inicial>" << endl;
         return 1; // Código de error
     }
 
     vector<string>inst = lee_instancia(string(argv[2]));
     int string_size = inst.at(0).length();
     int determinismo = atoi(argv[6]);
-    vector<pair<string,int>> poblacion;
+    vector<pair<string, int>> poblacion;
     int pob_size = atoi(argv[8]);
-    
+    int tournament_size = atoi(argv[10]);
+
     for (int i=0; i < pob_size; i++){
         poblacion.push_back(Greedy_probabilista(inst,determinismo));
-    }
-    map<float,string,greater<float>>sorted_map = costToFitness(poblacion);
-    cout<<"Generacion original"<<endl;
-    for (auto it: sorted_map){
-        cout<<it.first<<"     "<<it.second<<endl;
-    }
-    cout<<"Generacion 1"<<endl;
-    map<float,string,greater<float>>gen1 = cruzar(sorted_map,inst);
-    for (auto it: gen1){
-        cout<<it.first<<"     "<<it.second<<endl;
     }
     
     return 0;
