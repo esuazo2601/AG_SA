@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include <chrono>
 using namespace std;
 
 int hamming_cuadrado_a(string sol_in, vector<string>entrada){
@@ -83,22 +84,27 @@ pair<string,string> tournament (int k, vector<pair<string, int>>pob){
     return make_pair(father,mother);
 }
 
-
 string cruzar(pair<string, string> parents){
     int punto_de_cruce = rand()%parents.first.length();
     string descendiente = parents.first.substr(0, punto_de_cruce) + parents.second.substr(punto_de_cruce);
-    int random_int = random()%100;
+    
+    // Tiene Un 5% de Prob de mutar
+    int random_int = rand()%100;
     if (random_int < 5){
-        int random_index = random()%descendiente.size();
+        int random_index = rand()%descendiente.size();
         descendiente[random_index] = pick_random_letter();
     }
+
     return descendiente;
 }
 
 int main(int argc, char* argv[]) { 
     srand(time(nullptr));
-    if (argc != 11 || string(argv[1]) != "-i" || string(argv[3]) != "-t" || string(argv[5]) != "-d" || string(argv[7]) != "-p" || string(argv[9]) != "-k" ) {
-        cout << "Uso incorrecto. -i <instancia> -t <tiempo maximo> -d <determinismo> -p <población inicial>" << endl;
+    if (argc != 11 || string(argv[1]) != "-i" || string(argv[3]) != "-t" || 
+        string(argv[5]) != "-d" || string(argv[7]) != "-p" 
+        || string(argv[9]) != "-k" ) {
+
+        cout << "Uso incorrecto. -i <instancia> -t <tiempo maximo> -d <determinismo> -p <población inicial> -k <tamaño torneo>" << endl;
         return 1; // Código de error
     }
 
@@ -108,10 +114,44 @@ int main(int argc, char* argv[]) {
     vector<pair<string, int>> poblacion;
     int pob_size = atoi(argv[8]);
     int tournament_size = atoi(argv[10]);
+    const int tiempo_max_segundos = atoi(argv[4]);
+
+    if (tournament_size > pob_size){
+        cout<<"El tamaño del torneo debe ser menor al de la poblacion"<<endl;
+        return 1;
+    }
 
     for (int i=0; i < pob_size; i++){
         poblacion.push_back(Greedy_probabilista(inst,determinismo));
     }
+    sort(poblacion.begin(),poblacion.end(),sortbysec);
+    pair<string,int> greatest = poblacion.at(0);
+
+    auto tiempoInicio = chrono::high_resolution_clock::now();
+    bool condicion_de_parada = false;
+    int j = 0;
+    while(j<25){
+        //auto tiempoActual = chrono::high_resolution_clock::now();
+        
+        for(int i=0;i<pob_size;i++){
+            pair<string,string>parents = tournament(tournament_size,poblacion);
+            string desendencia = cruzar(parents);
+            poblacion[i] = make_pair(desendencia,hamming_cuadrado_a(desendencia,inst));
+        }
+
+        sort(poblacion.begin(),poblacion.end(),sortbysec);
+        pair<string, int>generation_best = poblacion.at(0);
     
+        if(generation_best.second <= greatest.second ){
+            greatest = generation_best;
+        }
+        
+        //auto duracion = chrono::duration_cast<std::chrono::seconds>(tiempoActual - tiempoInicio);
+        //if (duracion.count() >= tiempo_max_segundos) {
+        //    condicion_de_parada = true; // Termina la ejecución del algoritmo
+        //}
+        j++;
+    }
+    cout<<greatest.first<< "    "<< greatest.second<<endl;
     return 0;
 }
