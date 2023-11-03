@@ -9,6 +9,7 @@
 using namespace std;
 int tournament_remake = 0;
 int mutaciones = 0;
+int pob_size;
 
 int hamming_cuadrado_a(string sol_in, vector<string>entrada){
     int len = sol_in.length();
@@ -55,23 +56,23 @@ bool sortbysec(const pair<string,int> &a, const pair<string,int> &b){
 }
 
 pair<string,string> tournament (int k, vector<pair<string, int>>&pob){
-    int pob_size = pob.size();
-    random_shuffle(pob.begin(),pob.end());
     vector<pair<string, int>> selected_candidates;
-
+    random_shuffle(pob.begin(),pob.end());
     // Selección de k candidatos únicos de manera aleatoria
-    while (selected_candidates.size() < k) {
+    for (int i=0; i<k; i++) {
         int random_index = rand() % pob_size;
-        selected_candidates.push_back(pob[random_index]);
+        pair<string, int> candidate = pob.at(random_index);
+        selected_candidates.push_back (candidate);
     }
 
     // Barajea los candidatos de manera aleatoria
-    random_shuffle(selected_candidates.begin(), selected_candidates.end());
-
+    sort(selected_candidates.begin(), selected_candidates.end(),sortbysec);
     string father, mother;
     father = selected_candidates[0].first;
     mother = selected_candidates[1].first;
+    //cout<<father<<"   "<<mother<<endl;
 
+    selected_candidates.clear();
     if(father == mother){
         tournament_remake++;
         return tournament(k,pob);
@@ -107,7 +108,7 @@ int main(int argc, char* argv[]) {
     int string_size = inst.at(0).length();
     int determinismo = atoi(argv[6]);
     vector<pair<string, int>> poblacion;
-    int pob_size = atoi(argv[8]);
+    pob_size = atoi(argv[8]);
     int tournament_size = atoi(argv[10]);
     const int tiempo_max_segundos = atoi(argv[4]);
 
