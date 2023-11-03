@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
         pair<string, int>generation_best = poblacion.at(0);
     
         auto duracion = chrono::duration_cast<std::chrono::seconds>(tiempoActual - tiempoInicio);        
-        if(generation_best.second <= greatest.second){ //23000 > 24000
+        if(generation_best.second <= greatest.second){ //  -23000 MEJOR QUE -24000
             greatest = generation_best;
             tiempo_greatest = duracion.count();
         }
