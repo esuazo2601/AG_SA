@@ -3,7 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
-#include <string>
+#include <cstring>
 #include <algorithm>
 #include <chrono>
 using namespace std;
@@ -79,7 +79,12 @@ pair<string,string> tournament (int k, vector<pair<string, int>>pob){
     father = bracket_fight_father.at(0).first;
     mother = bracket_fight_mother.at(0).first;
 
-    if(father == mother) return tournament(k,pob);
+    if(father == mother){
+        cout << "rehacer torneo" << endl;
+        cout << "padre: " << father << endl;
+        cout << "madre: " << mother << endl;
+        return tournament(k,pob);
+    } 
 
     return make_pair(father,mother);
 }
@@ -87,15 +92,16 @@ pair<string,string> tournament (int k, vector<pair<string, int>>pob){
 string cruzar(pair<string, string> parents){
     int punto_de_cruce = rand()%parents.first.length();
     string descendiente = parents.first.substr(0, punto_de_cruce) + parents.second.substr(punto_de_cruce);
-    
     // Tiene Un 5% de Prob de mutar
     int random_int = rand()%100;
-    if (random_int < 5){
+    cout << "valor random: " << random_int << endl;
+    if (random_int <= 5){
+        cout << "entré al 5%" << endl;
         int random_index = rand()%descendiente.size();
+        cout << "indice random: " << random_index << endl;
         descendiente[random_index] = pick_random_letter();
     }
-
-    return descendiente;
+    return descendiente; 
 }
 
 int main(int argc, char* argv[]) { 
