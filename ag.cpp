@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <chrono>
 using namespace std;
+int tournament_remake = 0;
+int mutaciones = 0;
 
 int hamming_cuadrado_a(string sol_in, vector<string>entrada){
     int len = sol_in.length();
@@ -48,41 +50,30 @@ vector<string> lee_instancia(string nombre){
     return mat;
 }
 
-int generate_even_number(){
-    int generated = 2 * rand() % 20;
-    while (generated <= 0){
-        generated = 2*rand() % 20;
-    }
-    return generated;
-}
-
 bool sortbysec(const pair<string,int> &a, const pair<string,int> &b){
     return (a.second < b.second);
 }
 
-pair<string,string> tournament (int k, vector<pair<string, int>>pob){
+pair<string,string> tournament (int k, vector<pair<string, int>>&pob){
     int pob_size = pob.size();
-    vector<pair<string, int>> bracket_fight_father;
-    vector<pair<string, int>> bracket_fight_mother;
-    
-    for (int i=0; i < k ;i++){
-        int random_index = rand()%pob_size;
-        bracket_fight_father.push_back(pob[random_index]);
+    random_shuffle(pob.begin(),pob.end());
+    vector<pair<string, int>> selected_candidates;
+
+    // Selección de k candidatos únicos de manera aleatoria
+    while (selected_candidates.size() < k) {
+        int random_index = rand() % pob_size;
+        selected_candidates.push_back(pob[random_index]);
     }
-    for (int i=0; i < k ;i++){
-        int random_index = rand()%pob_size;
-        bracket_fight_mother.push_back(pob[random_index]);
-    }
-    sort(bracket_fight_father.begin(),bracket_fight_father.end(), sortbysec);
-    sort(bracket_fight_mother.begin(),bracket_fight_mother.end(), sortbysec);
-    string father,mother;
-    father = bracket_fight_father.at(0).first;
-    mother = bracket_fight_mother.at(0).first;
+
+    // Barajea los candidatos de manera aleatoria
+    random_shuffle(selected_candidates.begin(), selected_candidates.end());
+
+    string father, mother;
+    father = selected_candidates[0].first;
+    mother = selected_candidates[1].first;
 
     if(father == mother){
-        cout << "rehacer torneo" << endl;
-        cout << "padre: " << father << endl;
-        cout << "madre: " << mother << endl;
+        tournament_remake++;
         return tournament(k,pob);
     } 
 
@@ -94,11 +85,9 @@ string cruzar(pair<string, string> parents){
     string descendiente = parents.first.substr(0, punto_de_cruce) + parents.second.substr(punto_de_cruce);
     // Tiene Un 5% de Prob de mutar
     int random_int = rand()%100;
-    cout << "valor random: " << random_int << endl;
     if (random_int <= 5){
-        cout << "entré al 5%" << endl;
+        mutaciones++;
         int random_index = rand()%descendiente.size();
-        cout << "indice random: " << random_index << endl;
         descendiente[random_index] = pick_random_letter();
     }
     return descendiente; 
@@ -132,12 +121,12 @@ int main(int argc, char* argv[]) {
     }
     sort(poblacion.begin(),poblacion.end(),sortbysec);
     pair<string,int> greatest = poblacion.at(0);
-
+    double tiempo_greatest = numeric_limits<double>::max();
+    
     auto tiempoInicio = chrono::high_resolution_clock::now();
     bool condicion_de_parada = false;
-    int j = 0;
-    while(j<25){
-        //auto tiempoActual = chrono::high_resolution_clock::now();
+    while(!condicion_de_parada){
+        auto tiempoActual = chrono::high_resolution_clock::now();
         
         for(int i=0;i<pob_size;i++){
             pair<string,string>parents = tournament(tournament_size,poblacion);
@@ -148,16 +137,24 @@ int main(int argc, char* argv[]) {
         sort(poblacion.begin(),poblacion.end(),sortbysec);
         pair<string, int>generation_best = poblacion.at(0);
     
-        if(generation_best.second <= greatest.second ){
+        auto duracion = chrono::duration_cast<std::chrono::seconds>(tiempoActual - tiempoInicio);        
+        if(generation_best.second <= greatest.second){ //23000 > 24000
             greatest = generation_best;
+            tiempo_greatest = duracion.count();
+        }
+        if (tiempo_greatest == numeric_limits<double>::max()) {
+            tiempo_greatest = 0;
         }
         
-        //auto duracion = chrono::duration_cast<std::chrono::seconds>(tiempoActual - tiempoInicio);
-        //if (duracion.count() >= tiempo_max_segundos) {
-        //    condicion_de_parada = true; // Termina la ejecución del algoritmo
-        //}
-        j++;
+        if (duracion.count() >= tiempo_max_segundos) {
+            condicion_de_parada = true; // Termina la ejecución del algoritmo
+        }
+        
+
     }
+
+    cout<<"MUTACIONES: "<<mutaciones<<"  "<<"REMAKES: "<<tournament_remake<<endl;
     cout<<greatest.first<< "    "<< greatest.second<<endl;
+    cout<<"TIEMPO: "<<tiempo_greatest<<endl;
     return 0;
 }
