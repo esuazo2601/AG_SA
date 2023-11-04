@@ -9,8 +9,15 @@
 using namespace std;
 int index_crash = 0;
 int mutaciones = 0;
-int pob_size;
-int max_tries;
+
+//VALORES DE PARAMETROS DEFAULT
+int pob_size=500;
+int tournament_size = 100;
+int max_tries=25;
+int mutation_rate = 5;
+int determinismo = 5;
+int tiempo_max_segundos = 15;
+
 vector<string>inst;
 
 int hamming_cuadrado_a(string sol_in, vector<string>entrada){
@@ -90,7 +97,7 @@ string cruzar(pair<string, string> parents){
     string descendiente = parents.first.substr(0, punto_de_cruce) + parents.second.substr(punto_de_cruce);
     // Tiene Un 5% de Prob de mutar
     int random_int = rand()%100;
-    if (random_int <= 5){
+    if (random_int <= mutation_rate){
         mutaciones++;
         int random_index = rand()%descendiente.size();
         descendiente[random_index] = pick_random_letter();
@@ -100,28 +107,40 @@ string cruzar(pair<string, string> parents){
 
 int main(int argc, char* argv[]) { 
     srand(time(nullptr));
-    if (argc != 13 || string(argv[1]) != "-i" || string(argv[3]) != "-t" || 
-        string(argv[5]) != "-d" || string(argv[7]) != "-p" 
-        || string(argv[9]) != "-k" || string(argv[11]) != "-tr" ) {
 
-        std::cout << "Uso incorrecto. -i <instancia> -t <tiempo maximo> -d <determinismo> -p <población inicial> -k <tamaño torneo> -tr <intentos de no clonar en torneo>" << endl;
-        return 1; // Código de error
+    if (argc >= 2 && string(argv[1]) == "-i") {
+        inst = lee_instancia(string(argv[2]));
+        int string_size = inst.at(0).length();
+
+    } else {
+        cout << "Debe proporcionar una instancia válida con -i." << endl;
+        return 1; // Salir con un código de error
     }
 
-    inst = lee_instancia(string(argv[2]));
-    int string_size = inst.at(0).length();
-    int determinismo = atoi(argv[6]);
-    vector<pair<string, int>> poblacion;
-    pob_size = atoi(argv[8]);
-    int tournament_size = atoi(argv[10]);
-    const int tiempo_max_segundos = atoi(argv[4]);
-    max_tries = atoi(argv[12]);
+    for (int i = 3; i < argc; i += 2) {
+        if (i + 1 < argc) {
+            if (string(argv[i]) == "-t") {
+                tiempo_max_segundos = atoi(argv[i + 1]);
+            } else if (string(argv[i]) == "-d") {
+                determinismo = atoi(argv[i + 1]);
+            } else if (string(argv[i]) == "-p") {
+                pob_size = atoi(argv[i + 1]);
+            } else if (string(argv[i]) == "-k") {
+                tournament_size = atoi(argv[i + 1]);
+            } else if (string(argv[i]) == "-tr") {
+                max_tries = atoi(argv[i + 1]);
+            } else if (string(argv[i]) == "-mu") {
+                mutation_rate = atoi(argv[i + 1]);
+            }
+        }
+    }
 
     if (tournament_size > pob_size){
         std::cout<<"El tamaño del torneo debe ser menor al de la poblacion"<<endl;
         return 1;
     }
 
+    vector<pair<string, int>> poblacion;
     for (int i=0; i < pob_size; i++){
         poblacion.push_back(Greedy_probabilista(inst,determinismo));
     }
@@ -157,8 +176,11 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::cout<<"MUTACIONES: "<<mutaciones<<"  "<<"INDEX_CRASH: "<<index_crash<<endl;
+    /*    std::cout<<"MUTACIONES: "<<mutaciones<<"  "<<"INDEX_CRASH: "<<index_crash<<endl;
     std::cout<<greatest.first<< "    "<< greatest.second<<endl;
-    std::cout<<"TIEMPO: "<<tiempo_greatest<<endl;
+    std::cout<<"TIEMPO: "<<tiempo_greatest<<endl; 
+    */
+
+    std::cout << greatest.second<<endl;
     return 0;
 }
