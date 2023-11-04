@@ -7,9 +7,11 @@
 #include <algorithm>
 #include <chrono>
 using namespace std;
-int tournament_remake = 0;
+int index_crash = 0;
 int mutaciones = 0;
 int pob_size;
+int max_tries;
+vector<string>inst;
 
 int hamming_cuadrado_a(string sol_in, vector<string>entrada){
     int len = sol_in.length();
@@ -55,30 +57,32 @@ bool sortbysec(const pair<string,int> &a, const pair<string,int> &b){
     return (a.second < b.second);
 }
 
-pair<string,string> tournament (int k, vector<pair<string, int>>&pob){
-    vector<pair<string, int>> selected_candidates;
-    random_shuffle(pob.begin(),pob.end());
-    // Selección de k candidatos únicos de manera aleatoria
-    for (int i=0; i<k; i++) {
-        int random_index = rand() % pob_size;
-        pair<string, int> candidate = pob.at(random_index);
-        selected_candidates.push_back (candidate);
+pair<string, string> tournament(int tournament_size, vector<pair<string, int>> population) {
+    pair<string, string> parents;
+    vector<pair<string,int>>candidatesF;
+    vector<pair<string,int>>candidatesM;
+    int max_tries_copy = max_tries;
+
+    for (int i=0; i<tournament_size; i++){
+        int index_father = rand()%pob_size;
+        int index_mother = rand()%pob_size;
+        
+        while (index_father == index_mother && max_tries_copy > 0){
+            index_crash++;
+            max_tries_copy--;
+            index_mother = rand()%pob_size;
+        }
+        string cand_father = population[index_father].first;
+        candidatesF.push_back(make_pair (cand_father, hamming_cuadrado_a(cand_father,inst)));
+
+        string cand_mother = population[index_mother].first;
+        candidatesM.push_back(make_pair (cand_mother, hamming_cuadrado_a(cand_mother,inst)));
     }
-
-    // Barajea los candidatos de manera aleatoria
-    sort(selected_candidates.begin(), selected_candidates.end(),sortbysec);
-    string father, mother;
-    father = selected_candidates[0].first;
-    mother = selected_candidates[1].first;
-    //cout<<father<<"   "<<mother<<endl;
-
-    selected_candidates.clear();
-    if(father == mother){
-        tournament_remake++;
-        return tournament(k,pob);
-    } 
-
-    return make_pair(father,mother);
+    sort(candidatesM.begin(),candidatesM.end(), sortbysec);
+    sort(candidatesF.begin(),candidatesF.end(), sortbysec);
+    parents.first = candidatesM.at(0).first;
+    parents.second = candidatesF.at(0).first;
+    return parents;
 }
 
 string cruzar(pair<string, string> parents){
@@ -96,24 +100,25 @@ string cruzar(pair<string, string> parents){
 
 int main(int argc, char* argv[]) { 
     srand(time(nullptr));
-    if (argc != 11 || string(argv[1]) != "-i" || string(argv[3]) != "-t" || 
+    if (argc != 13 || string(argv[1]) != "-i" || string(argv[3]) != "-t" || 
         string(argv[5]) != "-d" || string(argv[7]) != "-p" 
-        || string(argv[9]) != "-k" ) {
+        || string(argv[9]) != "-k" || string(argv[11]) != "-tr" ) {
 
-        cout << "Uso incorrecto. -i <instancia> -t <tiempo maximo> -d <determinismo> -p <población inicial> -k <tamaño torneo>" << endl;
+        std::cout << "Uso incorrecto. -i <instancia> -t <tiempo maximo> -d <determinismo> -p <población inicial> -k <tamaño torneo> -tr <intentos de no clonar en torneo>" << endl;
         return 1; // Código de error
     }
 
-    vector<string>inst = lee_instancia(string(argv[2]));
+    inst = lee_instancia(string(argv[2]));
     int string_size = inst.at(0).length();
     int determinismo = atoi(argv[6]);
     vector<pair<string, int>> poblacion;
     pob_size = atoi(argv[8]);
     int tournament_size = atoi(argv[10]);
     const int tiempo_max_segundos = atoi(argv[4]);
+    max_tries = atoi(argv[12]);
 
     if (tournament_size > pob_size){
-        cout<<"El tamaño del torneo debe ser menor al de la poblacion"<<endl;
+        std::cout<<"El tamaño del torneo debe ser menor al de la poblacion"<<endl;
         return 1;
     }
 
@@ -150,12 +155,10 @@ int main(int argc, char* argv[]) {
         if (duracion.count() >= tiempo_max_segundos) {
             condicion_de_parada = true; // Termina la ejecución del algoritmo
         }
-        
-
     }
 
-    cout<<"MUTACIONES: "<<mutaciones<<"  "<<"REMAKES: "<<tournament_remake<<endl;
-    cout<<greatest.first<< "    "<< greatest.second<<endl;
-    cout<<"TIEMPO: "<<tiempo_greatest<<endl;
+    std::cout<<"MUTACIONES: "<<mutaciones<<"  "<<"INDEX_CRASH: "<<index_crash<<endl;
+    std::cout<<greatest.first<< "    "<< greatest.second<<endl;
+    std::cout<<"TIEMPO: "<<tiempo_greatest<<endl;
     return 0;
 }
