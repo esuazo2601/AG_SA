@@ -7,9 +7,10 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "*.cpp",
+                "ag_dataset.cpp",
+                "greedy-probabilista.cpp",
                 "-o",
-                "ag"
+                "agDataset"
             ],
             "options": {
                 "cwd": "${fileDirname}"

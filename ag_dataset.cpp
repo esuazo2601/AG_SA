@@ -6,6 +6,7 @@
 #include <cstring>
 #include <algorithm>
 #include <chrono>
+#include <iomanip> 
 using namespace std;
 int index_crash = 0;
 int mutaciones = 0;
@@ -16,9 +17,7 @@ int tournament_size = 100;
 int max_tries=25;
 int mutation_rate = 5;
 int determinismo = 5;
-int tiempo_max_segundos = 60;
-
-vector<string>inst;
+int tiempo_max_segundos = 5;
 
 int hamming_cuadrado_a(string sol_in, vector<string>entrada){
     int len = sol_in.length();
@@ -64,7 +63,7 @@ bool sortbysec(const pair<string,int> &a, const pair<string,int> &b){
     return (a.second < b.second);
 }
 
-pair<string, string> tournament(int tournament_size, vector<pair<string, int>> population) {
+pair<string, string> tournament(int tournament_size, vector<pair<string, int>> population, vector<string>inst) {
     pair<string, string> parents;
     vector<pair<string,int>>candidatesF;
     vector<pair<string,int>>candidatesM;
@@ -105,82 +104,67 @@ string cruzar(pair<string, string> parents){
     return descendiente; 
 }
 
+void AG(int tournament_size, vector<string> inst, int i, int m, int l) {
+    vector<pair<string, int>> poblacion;
+    for (int i = 0; i < pob_size; i++) {
+        poblacion.push_back(Greedy_probabilista(inst, determinismo));
+    }
+
+    sort(poblacion.begin(), poblacion.end(), sortbysec);
+    pair<string, int> greatest = poblacion.at(0);
+
+    bool condicion_de_parada = false;
+
+    double tiempo_greatest = numeric_limits<double>::max();
+    double time = 0;  // Inicializar time a 0
+    std::chrono::time_point<std::chrono::system_clock> start, end, found_solution;
+
+    start = std::chrono::system_clock::now();
+    while (time <= tiempo_max_segundos) {
+        for (int i = 0; i < pob_size; i++) {
+            pair<string, string> parents = tournament(tournament_size, poblacion, inst);
+            string descendencia = cruzar(parents);
+            poblacion[i] = make_pair(descendencia, hamming_cuadrado_a(descendencia, inst));
+        }
+
+        sort(poblacion.begin(), poblacion.end(), sortbysec);
+        pair<string, int> generation_best = poblacion.at(0);
+
+        if (generation_best.second < greatest.second) {  // Cambiar la condición
+            greatest = generation_best;
+            found_solution = std::chrono::system_clock::now();
+            std::chrono::duration<double> intervalo = (found_solution - start);
+            tiempo_greatest = intervalo.count();
+        }
+
+        end = std::chrono::system_clock::now();
+        std::chrono::duration<double> interval = (end - start);
+        time = interval.count();
+    }
+
+    printf("%d ;%d ;%d ;%d ;%.2f\n", i, m, l, greatest.second, tiempo_greatest);
+}
+
+
+
 int main(int argc, char* argv[]) { 
     srand(time(nullptr));
 
-    if (argc >= 2 && string(argv[1]) == "-i") {
-        inst = lee_instancia(string(argv[2]));
+    
+    int m = atoi(argv[1]);
+    int l = atoi(argv[2]);
+
+    std::cout << "inst ;" << " m;" << " l;" << " ga;" << " gatime" << endl;
+    for (int i = 0; i < 100; i++) {
+        string instancia = "inst_"+ to_string(m)+"_"+to_string(l)+"_4_" + to_string(i) + ".txt";
+        vector<string>inst = lee_instancia(instancia);
         int string_size = inst.at(0).length();
 
-    } else {
-        cout << "Debe proporcionar una instancia válida con -i." << endl;
-        return 1; // Salir con un código de error
-    }
-
-    for (int i = 3; i < argc; i += 2) {
-        if (i + 1 < argc) {
-            if (string(argv[i]) == "-t") {
-                tiempo_max_segundos = atoi(argv[i + 1]);
-            } else if (string(argv[i]) == "-d") {
-                determinismo = atoi(argv[i + 1]);
-            } else if (string(argv[i]) == "-p") {
-                pob_size = atoi(argv[i + 1]);
-            } else if (string(argv[i]) == "-k") {
-                tournament_size = atoi(argv[i + 1]);
-            } else if (string(argv[i]) == "-tr") {
-                max_tries = atoi(argv[i + 1]);
-            } else if (string(argv[i]) == "-mu") {
-                mutation_rate = atoi(argv[i + 1]);
-            }
+        if (tournament_size > pob_size){
+            std::cout<<"El tamaño del torneo debe ser menor al de la poblacion"<<endl;
+            return 1;
         }
+        AG(tournament_size, inst, i, m, l);
     }
-
-    if (tournament_size > pob_size){
-        std::cout<<"El tamaño del torneo debe ser menor al de la poblacion"<<endl;
-        return 1;
-    }
-
-    vector<pair<string, int>> poblacion;
-    for (int i=0; i < pob_size; i++){
-        poblacion.push_back(Greedy_probabilista(inst,determinismo));
-    }
-    sort(poblacion.begin(),poblacion.end(),sortbysec);
-    pair<string,int> greatest = poblacion.at(0);
-    double tiempo_greatest = numeric_limits<double>::max();
-    
-    auto tiempoInicio = chrono::high_resolution_clock::now();
-    bool condicion_de_parada = false;
-    while(!condicion_de_parada){
-        auto tiempoActual = chrono::high_resolution_clock::now();
-        
-        for(int i=0;i<pob_size;i++){
-            pair<string,string>parents = tournament(tournament_size,poblacion);
-            string desendencia = cruzar(parents);
-            poblacion[i] = make_pair(desendencia,hamming_cuadrado_a(desendencia,inst));
-        }
-
-        sort(poblacion.begin(),poblacion.end(),sortbysec);
-        pair<string, int>generation_best = poblacion.at(0);
-    
-        auto duracion = chrono::duration_cast<std::chrono::seconds>(tiempoActual - tiempoInicio);        
-        if(generation_best.second <= greatest.second){
-            greatest = generation_best;
-            tiempo_greatest = duracion.count();
-        }
-        if (tiempo_greatest == numeric_limits<double>::max()) {
-            tiempo_greatest = 0;
-        }
-        
-        if (duracion.count() >= tiempo_max_segundos) {
-            condicion_de_parada = true; // Termina la ejecución del algoritmo
-        }
-    }
-
-    /*    std::cout<<"MUTACIONES: "<<mutaciones<<"  "<<"INDEX_CRASH: "<<index_crash<<endl;
-    std::cout<<greatest.first<< "    "<< greatest.second<<endl;
-    std::cout<<"TIEMPO: "<<tiempo_greatest<<endl; 
-    */
-
-    std::cout << greatest.second<<endl;
     return 0;
 }

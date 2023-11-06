@@ -26,7 +26,6 @@
 ##    condition is satisfied, FALSE otherwise.
 
 # name          switch     type       values
-time              "-t"       i         (1,60)                  #-t 
 determ            "-d"       i         (1,100)                 #-d
 population        "-p"       i         (100,5000)              #-p
 tournament_size   "-k"       i         (10, "population")        #-k

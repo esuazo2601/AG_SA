@@ -34,9 +34,9 @@ CONFIG_PARAMS=$*
 # BINDIR=$(dirname "$(readlink -f "$(type -P $0 || echo $0)")")
 
 # EDIT THIS: Path to your executable
-EXE=./ag 
+EXE=../ag 
 # EDIT THIS: Specify how parameters are given to your executable
-EXE_PARAMS="-i $INSTANCE ${CONFIG_PARAMS}"
+EXE_PARAMS="-i $INSTANCE -t 60 ${CONFIG_PARAMS}"
 
 if [ ! -x "$(command -v ${EXE})" ]; then
     error "${EXE}: not found or not executable (pwd: $(pwd))"
