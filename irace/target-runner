@@ -34,7 +34,7 @@ CONFIG_PARAMS=$*
 # BINDIR=$(dirname "$(readlink -f "$(type -P $0 || echo $0)")")
 
 # EDIT THIS: Path to your executable
-EXE=../ag 
+EXE=./ag 
 # EDIT THIS: Specify how parameters are given to your executable
 EXE_PARAMS="-i $INSTANCE -t 60 ${CONFIG_PARAMS}"
 
@@ -44,8 +44,8 @@ fi
 
 # # If the program just prints a number, we can use 'exec' to avoid creating
 # # another process, but there can be no other commands after exec, only exit.
-exec $EXE ${EXE_PARAMS}
-exit 1
+# exec $EXE ${EXE_PARAMS}
+# exit 1
 
 # These files are saved in execDir. Saving them in /tmp may be faster. 
 STDOUT=c${CONFIG_ID}-${INSTANCE_ID}-${SEED}.stdout

@@ -25,9 +25,8 @@
 ##    other parameters. This expression must return TRUE if the 
 ##    condition is satisfied, FALSE otherwise.
 
-# name          switch     type       values
-determ            "-d"       i         (1,100)                 #-d
-population        "-p"       i         (100,5000)              #-p
-tournament_size   "-k"       i         (10, "population")        #-k
-tournament_tries  "-tr"      i         (10, "tournament_size")   #tr
-mutation_rate     "-mu"      i         (1,50)                  #-mu
+#name             switch      type       ranges
+determ            "-d "       i         (1,100)    #-d
+population        "-p "       i         (100,5000)   #-p
+tournament_size   "-k "       i         (2, 15)  #-k
+mutation_rate     "-mu "      i         (1,10)  #-mu

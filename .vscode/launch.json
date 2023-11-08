@@ -4,10 +4,12 @@
             "name": "C/C++: g++ build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/agDataset",
+            "program": "${fileDirname}/ag",
             "args": [  
-            "200",
-            "15",
+            "-i",
+            "inst_200_15_4_1.txt",
+            "-t",
+            "60"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

@@ -112,9 +112,6 @@ void AG(int tournament_size, vector<string> inst, int i, int m, int l) {
 
     sort(poblacion.begin(), poblacion.end(), sortbysec);
     pair<string, int> greatest = poblacion.at(0);
-
-    bool condicion_de_parada = false;
-
     double tiempo_greatest = numeric_limits<double>::max();
     double time = 0;  // Inicializar time a 0
     std::chrono::time_point<std::chrono::system_clock> start, end, found_solution;
