@@ -60,10 +60,6 @@ vector<string> lee_instancia(string nombre){
     return mat;
 }
 
-bool sortbysec(const pair<string,int> &a, const pair<string,int> &b){
-    return (a.second < b.second);
-}
-
 vector<int>generate_mask(int largo_genes){
     vector<int>mask(largo_genes,0);
     int punto_cruce = largo_genes/2;

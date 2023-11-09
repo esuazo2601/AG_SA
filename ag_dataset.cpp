@@ -8,6 +8,8 @@
 #include <chrono>
 #include <iomanip>
 #include <random> 
+#include<unistd.h>
+
 using namespace std;
 int index_crash = 0;
 int mutaciones = 0;
@@ -59,10 +61,6 @@ vector<string> lee_instancia(string nombre){
     }
     archivo_txt.close();
     return mat;
-}
-
-bool sortbysec(const pair<string,int> &a, const pair<string,int> &b){
-    return (a.second < b.second);
 }
 
 vector<int>generate_mask(int largo_genes){
@@ -172,11 +170,9 @@ void AG(int tournament_size, vector<string> inst, int i, int m, int l) {
 
         if(generation_best.second < greatest.second){
             greatest = generation_best;
-            std::cout << greatest.second <<endl;
             found_solution = std::chrono::system_clock::now();
             std::chrono::duration<double> intervalo = (found_solution - start);
             tiempo_greatest = intervalo.count();
-            cout<<"Actualice: " <<tiempo_greatest<<endl;
         }
 
         if (tiempo_greatest == numeric_limits<double>::max()) {
@@ -194,7 +190,7 @@ void AG(int tournament_size, vector<string> inst, int i, int m, int l) {
     std::cout<<"TIEMPO: "<<tiempo_greatest<<endl; 
     */
 
-    std::cout << greatest.second<<endl;
+    //std::cout << greatest.second<<endl;
 
     printf("%d ;%d ;%d ;%d ;%.2f\n", i, m, l, greatest.second, tiempo_greatest);
 }
@@ -203,15 +199,20 @@ int main(int argc, char* argv[]) {
     std::mt19937 generator(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     int m = atoi(argv[1]);
     int l = atoi(argv[2]);
+
+    char directorio[10]; // Asegúrate de usar un tamaño adecuado para tu caso
+    snprintf(directorio, sizeof(directorio), "%d %d", m, l);
+
+    // Cambiar el directorio de trabajo
+    if (chdir(directorio) != 0) {
+        perror("chdir");
+        return 1;
+    }
     std::cout << "inst ;" << " m;" << " l;" << " ga;" << " gatime" << endl;
     for (int i = 1; i < 100; i++) {
         string instancia = "inst_"+ to_string(m)+"_"+to_string(l)+"_4_" + to_string(i) + ".txt";
         inst = lee_instancia(instancia);
         int string_size = inst.at(0).length();
-        if (tournament_size > pob_size){
-            std::cout<<"El tamaño del torneo debe ser menor al de la poblacion"<<endl;
-            return 1;
-        }
         AG(tournament_size, inst, i, m, l);
     }
     return 0;
