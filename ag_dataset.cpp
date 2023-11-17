@@ -15,11 +15,11 @@ int index_crash = 0;
 int mutaciones = 0;
 
 //VALORES DE PARAMETROS DEFAULT
-int pob_size=500;
-int tournament_size = 5;
-int max_tries=25;
+int pob_size=878;
+int tournament_size = 7;
 int mutation_rate = 10;
-int determinismo = 5;
+int determinismo = 65;
+
 int tiempo_max_segundos = 60;
 vector<string> inst;
 
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     std::cout << "inst ;" << " m;" << " l;" << " ga;" << " gatime" << endl;
-    for (int i = 1; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         string instancia = "inst_"+ to_string(m)+"_"+to_string(l)+"_4_" + to_string(i) + ".txt";
         inst = lee_instancia(instancia);
         int string_size = inst.at(0).length();
